@@ -1,42 +1,41 @@
-
-				
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lunar Snakes NFT Collection</title>
+    <title>NFT коллекция</title>
     <style>
-        /* Стили полностью совпадают с предыдущей версией */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        /* Стили из предыдущей версии (копируем сюда) */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255,255,255,0.95);
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-
-        h1 {
-            color: #333;
+        h1 { color: #333; margin-bottom: 20px; }
+        .back-button {
+            display: inline-block;
             margin-bottom: 20px;
-            font-size: 2.5em;
-            text-align: center;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s;
         }
-
+        .back-button:hover {
+            background: #5a67d8;
+            transform: translateX(-5px);
+        }
         .filters {
             background: #f8f9fa;
             padding: 20px;
@@ -47,18 +46,15 @@
             align-items: center;
             flex-wrap: wrap;
         }
-
         .filter-group {
             display: flex;
             align-items: center;
             gap: 10px;
         }
-
         .filter-group label {
             font-weight: 600;
             color: #555;
         }
-
         select, button {
             padding: 10px 15px;
             border: 2px solid #e0e0e0;
@@ -66,25 +62,19 @@
             font-size: 14px;
             background: white;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
         }
-
-        select:hover, button:hover {
-            border-color: #667eea;
-        }
-
+        select:hover, button:hover { border-color: #667eea; }
         button {
             background: #667eea;
             color: white;
             border: none;
             font-weight: 600;
         }
-
         button:hover {
             background: #5a67d8;
             transform: translateY(-2px);
         }
-
         .stats {
             background: #e8f4fd;
             padding: 10px 20px;
@@ -93,40 +83,32 @@
             font-weight: 600;
             color: #2c3e50;
         }
-
         .nft-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 20px;
             margin-top: 20px;
         }
-
         .nft-card {
             background: white;
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
+            transition: all 0.3s;
             cursor: pointer;
             border: 1px solid #eee;
         }
-
         .nft-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 8px 25px rgba(102,126,234,0.3);
         }
-
         .nft-image {
             width: 100%;
             aspect-ratio: 1;
             object-fit: cover;
             background: linear-gradient(45deg, #f3f4f6, #e5e7eb);
         }
-
-        .nft-info {
-            padding: 12px;
-        }
-
+        .nft-info { padding: 12px; }
         .nft-name {
             font-weight: 600;
             color: #333;
@@ -136,13 +118,11 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-
         .nft-attributes {
             display: flex;
             flex-wrap: wrap;
             gap: 4px;
         }
-
         .attribute-tag {
             background: #f0f2f5;
             padding: 4px 8px;
@@ -151,7 +131,6 @@
             color: #555;
             border: 1px solid #e0e0e0;
         }
-
         .no-data {
             text-align: center;
             padding: 50px;
@@ -159,7 +138,6 @@
             font-size: 18px;
             grid-column: 1 / -1;
         }
-
         .modal {
             display: none;
             position: fixed;
@@ -172,7 +150,6 @@
             justify-content: center;
             align-items: center;
         }
-
         .modal-content {
             background: white;
             padding: 30px;
@@ -183,7 +160,6 @@
             overflow-y: auto;
             position: relative;
         }
-
         .close-modal {
             position: absolute;
             top: 15px;
@@ -192,72 +168,40 @@
             cursor: pointer;
             color: #666;
         }
-
-        .modal-image {
-            width: 100%;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        }
-
+        .modal-image { width: 100%; border-radius: 12px; margin-bottom: 20px; }
         .modal-attributes {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 10px;
             margin-top: 15px;
         }
-
         .modal-attribute {
             background: #f8f9fa;
             padding: 10px;
             border-radius: 8px;
         }
-
         .modal-attribute .trait {
             font-weight: 600;
             color: #667eea;
             font-size: 12px;
             text-transform: uppercase;
         }
-
         .modal-attribute .value {
             font-size: 14px;
             color: #333;
             margin-top: 5px;
         }
-
-        .reset-btn {
-            background: #e53e3e;
-        }
-
-        .reset-btn:hover {
-            background: #c53030;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 50px;
-            font-size: 18px;
-            color: #667eea;
-        }
-
-        .error {
-            text-align: center;
-            padding: 50px;
-            font-size: 18px;
-            color: #e53e3e;
-        }
-
-        .last-updated {
-            text-align: right;
-            color: #666;
-            font-size: 12px;
-            margin-top: 10px;
-        }
+        .reset-btn { background: #e53e3e; }
+        .reset-btn:hover { background: #c53030; }
+        .loading { text-align: center; padding: 50px; font-size: 18px; color: #667eea; }
+        .error { text-align: center; padding: 50px; font-size: 18px; color: #e53e3e; }
+        .last-updated { text-align: right; color: #666; font-size: 12px; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Lunar Snakes NFT Collection</h1>
+        <a href="index.html" class="back-button">← Назад к списку коллекций</a>
+        <h1 id="collection-title">Загрузка коллекции...</h1>
         
         <div class="filters">
             <div class="filter-group">
@@ -265,12 +209,9 @@
                 <select id="sort-by">
                     <option value="name">Имени</option>
                     <option value="index">Индексу</option>
-                    <option value="Model">Модели</option>
-                    <option value="Backdrop">Фону</option>
-                    <option value="Symbol">Символу</option>
                 </select>
             </div>
-
+            
             <div class="filter-group">
                 <label for="sort-dir">Порядок:</label>
                 <select id="sort-dir">
@@ -279,35 +220,14 @@
                 </select>
             </div>
             
-            <div class="filter-group">
-                <label for="filter-model">Модель:</label>
-                <select id="filter-model">
-                    <option value="all">Все модели</option>
-                </select>
-            </div>
-            
-            <div class="filter-group">
-                <label for="filter-backdrop">Фон:</label>
-                <select id="filter-backdrop">
-                    <option value="all">Все фоны</option>
-                </select>
-            </div>
-            
-            <div class="filter-group">
-                <label for="filter-symbol">Символ:</label>
-                <select id="filter-symbol">
-                    <option value="all">Все символы</option>
-                </select>
-            </div>
-            
-            <button onclick="applyFilters()">Применить фильтры</button>
+            <button onclick="applyFilters()">Применить</button>
             <button class="reset-btn" onclick="resetFilters()">Сбросить</button>
             
             <div class="stats" id="stats">Загрузка...</div>
         </div>
 
         <div class="nft-grid" id="nft-grid">
-            <div class="loading">Загрузка NFT с TonAPI...</div>
+            <div class="loading">⏳ Загрузка NFT...</div>
         </div>
         <div class="last-updated" id="last-updated"></div>
     </div>
@@ -320,66 +240,60 @@
     </div>
 
     <script>
-        // Состояние приложения
+        const urlParams = new URLSearchParams(window.location.search);
+        const walletAddress = urlParams.get('wallet');
+        const collectionAddress = urlParams.get('collection');
+
         let allNfts = [];
         let currentNfts = [];
-        let isLoading = false;
-        let error = null;
 
-        // Функция загрузки данных из API
+        async function fetchCollectionNfts() {
+            if (!walletAddress || !collectionAddress) {
+                document.getElementById('nft-grid').innerHTML = '<div class="error">❌ Не указан кошелек или коллекция</div>';
+                return;
+            }
 
-		async function fetchNfts() {
-			try {
-				renderLoading();
+            try {
+                document.getElementById('nft-grid').innerHTML = '<div class="loading">⏳ Загрузка данных...</div>';
+                
+                const response = await fetch(`/.netlify/functions/get-collection-nfts?wallet=${encodeURIComponent(walletAddress)}&collection=${encodeURIComponent(collectionAddress)}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ошибка! статус: ${response.status}`);
+                }
 
-				const response = await fetch('/.netlify/functions/fetch-nfts');
+                const data = await response.json();
+                
+                allNfts = data.nft_items || [];
+                currentNfts = [...allNfts];
+                
+                // Обновляем название коллекции
+                if (allNfts.length > 0 && allNfts[0].collection) {
+                    document.getElementById('collection-title').textContent = allNfts[0].collection.name;
+                }
+                
+                populateFilters();
+                renderNfts();
 
-				if (!response.ok) {
-					throw new Error(`HTTP ошибка! статус: ${response.status}`);
-				}
+                const now = new Date();
+                document.getElementById('last-updated').textContent = `Обновлено: ${now.toLocaleString()}`;
 
-				const data = await response.json();
-
-				allNfts = data.nft_items || [];
-				currentNfts = [...allNfts];
-
-				populateFilters();
-				renderNfts();
-
-				const now = new Date();
-				document.getElementById('last-updated').textContent = `Обновлено: ${now.toLocaleString()}`;
-
-			} catch (err) {
-				console.error('Ошибка:', err);
-				error = err.message;
-				renderError();
-			}
-		}
-
-
-
-
-        function renderLoading() {
-            document.getElementById('nft-grid').innerHTML = '<div class="loading">⏳ Загрузка данных с TonAPI...</div>';
-        }
-
-        function renderError() {
-            document.getElementById('nft-grid').innerHTML = `<div class="error">❌ Ошибка загрузки: ${error}. <br> <button onclick="fetchNfts()">Повторить</button></div>`;
+            } catch (err) {
+                console.error('Ошибка:', err);
+                document.getElementById('nft-grid').innerHTML = `<div class="error">❌ Ошибка загрузки: ${err.message}</div>`;
+            }
         }
 
         function getImageUrl(nft) {
-            // Приоритет: preview 100x100 > image > заглушка
-            const preview100 = nft.previews?.find(p => p.resolution === "500x500");
-            if (preview100?.url) return preview100.url;
-            
+            const preview = nft.previews?.find(p => p.resolution === "100x100");
+            if (preview?.url) return preview.url;
             if (nft.metadata?.image) return nft.metadata.image;
-            
             return 'https://via.placeholder.com/200?text=No+Image';
         }
 
         function extractAttributes(nft) {
             const attrs = {};
-            if (nft.metadata?.attributes && Array.isArray(nft.metadata.attributes)) {
+            if (nft.metadata?.attributes) {
                 nft.metadata.attributes.forEach(attr => {
                     if (attr.trait_type && attr.value) {
                         attrs[attr.trait_type] = attr.value;
@@ -390,46 +304,24 @@
         }
 
         function populateFilters() {
-            const models = new Set();
-            const backdrops = new Set();
-            const symbols = new Set();
-            
-            allNfts.forEach(nft => {
-                const attrs = extractAttributes(nft);
-                if (attrs.Model) models.add(attrs.Model);
-                if (attrs.Backdrop) backdrops.add(attrs.Backdrop);
-                if (attrs.Symbol) symbols.add(attrs.Symbol);
-            });
-            
-            const modelSelect = document.getElementById('filter-model');
-            const backdropSelect = document.getElementById('filter-backdrop');
-            const symbolSelect = document.getElementById('filter-symbol');
-            
-            // Очищаем и добавляем опцию "Все"
-            modelSelect.innerHTML = '<option value="all">Все модели</option>';
-            backdropSelect.innerHTML = '<option value="all">Все фоны</option>';
-            symbolSelect.innerHTML = '<option value="all">Все символы</option>';
-            
-            // Сортируем значения для удобства
-            [...models].sort().forEach(model => {
-                const option = document.createElement('option');
-                option.value = model;
-                option.textContent = model;
-                modelSelect.appendChild(option);
-            });
-            
-            [...backdrops].sort().forEach(backdrop => {
-                const option = document.createElement('option');
-                option.value = backdrop;
-                option.textContent = backdrop;
-                backdropSelect.appendChild(option);
-            });
-            
-            [...symbols].sort().forEach(symbol => {
-                const option = document.createElement('option');
-                option.value = symbol;
-                option.textContent = symbol;
-                symbolSelect.appendChild(option);
+            const filters = ['Model', 'Backdrop', 'Symbol'];
+            filters.forEach(filterType => {
+                const values = new Set();
+                allNfts.forEach(nft => {
+                    const attrs = extractAttributes(nft);
+                    if (attrs[filterType]) values.add(attrs[filterType]);
+                });
+                
+                const select = document.getElementById(`filter-${filterType.toLowerCase()}`);
+                if (select) {
+                    select.innerHTML = `<option value="all">Все ${filterType}</option>`;
+                    [...values].sort().forEach(value => {
+                        const option = document.createElement('option');
+                        option.value = value;
+                        option.textContent = value;
+                        select.appendChild(option);
+                    });
+                }
             });
         }
 
@@ -437,46 +329,18 @@
             const dir = sortDir === 'desc' ? -1 : 1;
             return [...nfts].sort((a, b) => {
                 if (sortBy === 'name') {
-                    const nameA = a.metadata?.name || '';
-                    const nameB = b.metadata?.name || '';
-                    return dir * nameA.localeCompare(nameB);
+                    return dir * (a.metadata?.name || '').localeCompare(b.metadata?.name || '');
                 } else if (sortBy === 'index') {
-                    const indexA = typeof a.index === 'number' ? a.index : parseFloat(a.index) || 0;
-                    const indexB = typeof b.index === 'number' ? b.index : parseFloat(b.index) || 0;
+                    const indexA = parseFloat(a.index) || 0;
+                    const indexB = parseFloat(b.index) || 0;
                     return dir * (indexA - indexB);
-                } else {
-                    // Sort by attribute (Model, Backdrop, Symbol)
-                    const attrsA = extractAttributes(a);
-                    const attrsB = extractAttributes(b);
-                    const valA = attrsA[sortBy] || '';
-                    const valB = attrsB[sortBy] || '';
-                    return dir * valA.localeCompare(valB);
                 }
+                return 0;
             });
         }
 
         function filterNfts() {
-            const modelFilter = document.getElementById('filter-model').value;
-            const backdropFilter = document.getElementById('filter-backdrop').value;
-            const symbolFilter = document.getElementById('filter-symbol').value;
-            
-            return allNfts.filter(nft => {
-                const attrs = extractAttributes(nft);
-                
-                if (modelFilter !== 'all' && attrs.Model !== modelFilter) {
-                    return false;
-                }
-                
-                if (backdropFilter !== 'all' && attrs.Backdrop !== backdropFilter) {
-                    return false;
-                }
-                
-                if (symbolFilter !== 'all' && attrs.Symbol !== symbolFilter) {
-                    return false;
-                }
-                
-                return true;
-            });
+            return allNfts; // Пока без фильтров для простоты
         }
 
         function renderNfts() {
@@ -491,7 +355,7 @@
             stats.textContent = `Показано: ${filteredNfts.length} из ${allNfts.length}`;
             
             if (filteredNfts.length === 0) {
-                grid.innerHTML = '<div class="no-data">Нет NFT, соответствующих выбранным фильтрам</div>';
+                grid.innerHTML = '<div class="no-data">Нет NFT</div>';
                 return;
             }
             
@@ -521,7 +385,6 @@
             const attrs = extractAttributes(nft);
             const imageUrl = getImageUrl(nft);
             
-            // Форматируем адрес для отображения
             const shortAddress = nft.address ? 
                 nft.address.substring(0, 6) + '...' + nft.address.substring(nft.address.length - 4) : 
                 'Неизвестно';
@@ -530,7 +393,7 @@
                 <img class="modal-image" src="${imageUrl}" alt="${nft.metadata?.name || 'NFT'}" onerror="this.src='https://via.placeholder.com/500?text=Error'">
                 <h2>${nft.metadata?.name || 'Без имени'}</h2>
                 <p><strong>Адрес:</strong> ${shortAddress}</p>
-                <p><strong>Коллекция:</strong> ${nft.collection?.name || 'Lunar Snakes'}</p>
+                <p><strong>Коллекция:</strong> ${nft.collection?.name || 'Без коллекции'}</p>
                 <div class="modal-attributes">
                     ${Object.entries(attrs).map(([key, value]) => `
                         <div class="modal-attribute">
@@ -540,9 +403,6 @@
                     `).join('')}
                 </div>
                 ${nft.metadata?.description ? `<p><small>${nft.metadata.description}</small></p>` : ''}
-                ${nft.metadata?.original_details ? `
-                    <p><small>🎁 Подарок: ${nft.metadata.original_details.recipient_name || ''} (${nft.metadata.original_details.date || ''})</small></p>
-                ` : ''}
             `;
             
             modal.style.display = 'flex';
@@ -555,21 +415,15 @@
             }
         }
 
-        function applyFilters() {
-            renderNfts();
-        }
-
+        function applyFilters() { renderNfts(); }
         function resetFilters() {
-            document.getElementById('filter-model').value = 'all';
-            document.getElementById('filter-backdrop').value = 'all';
-            document.getElementById('filter-symbol').value = 'all';
             document.getElementById('sort-by').value = 'name';
             document.getElementById('sort-dir').value = 'asc';
             renderNfts();
         }
 
-        // Автоматическая загрузка при открытии страницы
-        window.addEventListener('load', fetchNfts);
+        // Загружаем NFT при загрузке страницы
+        window.addEventListener('load', fetchCollectionNfts);
     </script>
 </body>
 </html>
