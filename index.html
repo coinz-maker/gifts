@@ -1,11 +1,12 @@
 
+
 				
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lunar Snakes NFT коллекция (реальные данные)</title>
+    <title>Lunar Snakes NFT Collection</title>
     <style>
         /* Стили полностью совпадают с предыдущей версией */
         * {
@@ -257,7 +258,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🐍 Lunar Snakes NFT Collection (реальные данные)</h1>
+        <h1>Lunar Snakes NFT Collection</h1>
         
         <div class="filters">
             <div class="filter-group">
@@ -265,6 +266,17 @@
                 <select id="sort-by">
                     <option value="name">Имени</option>
                     <option value="index">Индексу</option>
+                    <option value="Model">Модели</option>
+                    <option value="Backdrop">Фону</option>
+                    <option value="Symbol">Символу</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="sort-dir">Порядок:</label>
+                <select id="sort-dir">
+                    <option value="asc">А-Я / 0-9</option>
+                    <option value="desc">Я-А / 9-0</option>
                 </select>
             </div>
             
@@ -320,29 +332,24 @@
 		async function fetchNfts() {
 			try {
 				renderLoading();
-				
-				// Используем CORS-прокси
-				const proxyUrl = 'https://api.allorigins.win/raw?url=';
-				const targetUrl = 'https://tonapi.io/v2/accounts/0:bc02182c000b10ed8e46d605431697f291f44d03dc1b271b175c4408b9336a45/nfts?collection=0:b696c532d522b1244241c23e5909f5672cfbc0a83ab2e5cdba5e0f314bfa434d&limit=1000&offset=0&indirect_ownership=false';
-				
-				const response = await fetch(proxyUrl + encodeURIComponent(targetUrl));
-				
+
+				const response = await fetch('/.netlify/functions/fetch-nfts');
+
 				if (!response.ok) {
 					throw new Error(`HTTP ошибка! статус: ${response.status}`);
 				}
-				
+
 				const data = await response.json();
-				
-				// Обработка ответа
+
 				allNfts = data.nft_items || [];
 				currentNfts = [...allNfts];
-				
+
 				populateFilters();
 				renderNfts();
-				
+
 				const now = new Date();
 				document.getElementById('last-updated').textContent = `Обновлено: ${now.toLocaleString()}`;
-				
+
 			} catch (err) {
 				console.error('Ошибка:', err);
 				error = err.message;
@@ -427,19 +434,25 @@
             });
         }
 
-        function sortNfts(nfts, sortBy) {
+        function sortNfts(nfts, sortBy, sortDir) {
+            const dir = sortDir === 'desc' ? -1 : 1;
             return [...nfts].sort((a, b) => {
                 if (sortBy === 'name') {
                     const nameA = a.metadata?.name || '';
                     const nameB = b.metadata?.name || '';
-                    return nameA.localeCompare(nameB);
+                    return dir * nameA.localeCompare(nameB);
                 } else if (sortBy === 'index') {
-                    // Индекс может быть очень большим числом или строкой
                     const indexA = typeof a.index === 'number' ? a.index : parseFloat(a.index) || 0;
                     const indexB = typeof b.index === 'number' ? b.index : parseFloat(b.index) || 0;
-                    return indexA - indexB;
+                    return dir * (indexA - indexB);
+                } else {
+                    // Sort by attribute (Model, Backdrop, Symbol)
+                    const attrsA = extractAttributes(a);
+                    const attrsB = extractAttributes(b);
+                    const valA = attrsA[sortBy] || '';
+                    const valB = attrsB[sortBy] || '';
+                    return dir * valA.localeCompare(valB);
                 }
-                return 0;
             });
         }
 
@@ -469,8 +482,9 @@
 
         function renderNfts() {
             const sortBy = document.getElementById('sort-by').value;
+            const sortDir = document.getElementById('sort-dir').value;
             let filteredNfts = filterNfts();
-            filteredNfts = sortNfts(filteredNfts, sortBy);
+            filteredNfts = sortNfts(filteredNfts, sortBy, sortDir);
             
             const grid = document.getElementById('nft-grid');
             const stats = document.getElementById('stats');
@@ -551,6 +565,7 @@
             document.getElementById('filter-backdrop').value = 'all';
             document.getElementById('filter-symbol').value = 'all';
             document.getElementById('sort-by').value = 'name';
+            document.getElementById('sort-dir').value = 'asc';
             renderNfts();
         }
 
