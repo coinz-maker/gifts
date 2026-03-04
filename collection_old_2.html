@@ -276,13 +276,6 @@
             font-size: 12px;
             margin-top: 10px;
         }
-
-        .attribute-filters {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-top: 10px;
-        }
     </style>
 </head>
 <body>
@@ -298,6 +291,9 @@
                 <select id="sort-by">
                     <option value="name">Имени</option>
                     <option value="index">Индексу</option>
+                    <option value="Model">Модели</option>
+                    <option value="Backdrop">Фону</option>
+                    <option value="Symbol">Символу</option>
                 </select>
             </div>
 
@@ -309,14 +305,32 @@
                 </select>
             </div>
             
+            <div class="filter-group">
+                <label for="filter-model">Модель:</label>
+                <select id="filter-model">
+                    <option value="all">Все модели</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="filter-backdrop">Фон:</label>
+                <select id="filter-backdrop">
+                    <option value="all">Все фоны</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="filter-symbol">Символ:</label>
+                <select id="filter-symbol">
+                    <option value="all">Все символы</option>
+                </select>
+            </div>
+            
             <button onclick="applyFilters()">Применить фильтры</button>
             <button class="reset-btn" onclick="resetFilters()">Сбросить</button>
             
             <div class="stats" id="stats">Загрузка...</div>
         </div>
-
-        <!-- Динамические фильтры по атрибутам будут добавлены сюда -->
-        <div class="attribute-filters" id="attribute-filters"></div>
 
         <div class="nft-grid" id="nft-grid">
             <div class="loading">Загрузка NFT коллекции...</div>
@@ -342,9 +356,6 @@
         let currentNfts = [];
         let isLoading = false;
         let error = null;
-        
-        // Хранилище для всех уникальных атрибутов и их значений
-        let attributeTypes = new Map(); // key: trait_type, value: Set of values
 
         // Показываем информацию о кошельке
         if (walletAddress) {
@@ -379,15 +390,7 @@
                     document.getElementById('collection-title').textContent = 'NFT без коллекции';
                 }
 
-                // Анализируем атрибуты
-                analyzeAttributes();
-                
-                // Создаем динамические фильтры
-                createDynamicFilters();
-                
-                // Заполняем выпадающие списки для сортировки
-                populateSortOptions();
-                
+                populateFilters();
                 renderNfts();
 
                 const now = new Date();
@@ -398,77 +401,6 @@
                 error = err.message;
                 renderError();
             }
-        }
-
-        function analyzeAttributes() {
-            attributeTypes.clear();
-            
-            allNfts.forEach(nft => {
-                if (nft.metadata?.attributes && Array.isArray(nft.metadata.attributes)) {
-                    nft.metadata.attributes.forEach(attr => {
-                        if (attr.trait_type && attr.value) {
-                            if (!attributeTypes.has(attr.trait_type)) {
-                                attributeTypes.set(attr.trait_type, new Set());
-                            }
-                            attributeTypes.get(attr.trait_type).add(attr.value);
-                        }
-                    });
-                }
-            });
-        }
-
-        function createDynamicFilters() {
-            const filterContainer = document.getElementById('attribute-filters');
-            filterContainer.innerHTML = '';
-            
-            // Создаем фильтры для каждого типа атрибута
-            attributeTypes.forEach((values, traitType) => {
-                const filterGroup = document.createElement('div');
-                filterGroup.className = 'filter-group';
-                
-                const label = document.createElement('label');
-                label.htmlFor = `filter-${traitType}`;
-                label.textContent = `${traitType}:`;
-                
-                const select = document.createElement('select');
-                select.id = `filter-${traitType}`;
-                select.setAttribute('data-trait-type', traitType);
-                
-                const allOption = document.createElement('option');
-                allOption.value = 'all';
-                allOption.textContent = `Все ${traitType}`;
-                select.appendChild(allOption);
-                
-                // Добавляем все уникальные значения для этого атрибута
-                [...values].sort().forEach(value => {
-                    const option = document.createElement('option');
-                    option.value = value;
-                    option.textContent = value;
-                    select.appendChild(option);
-                });
-                
-                filterGroup.appendChild(label);
-                filterGroup.appendChild(select);
-                filterContainer.appendChild(filterGroup);
-            });
-        }
-
-        function populateSortOptions() {
-            const sortSelect = document.getElementById('sort-by');
-            
-            // Сохраняем базовые опции
-            sortSelect.innerHTML = `
-                <option value="name">Имени</option>
-                <option value="index">Индексу</option>
-            `;
-            
-            // Добавляем все атрибуты как опции для сортировки
-            attributeTypes.forEach((_, traitType) => {
-                const option = document.createElement('option');
-                option.value = traitType;
-                option.textContent = traitType;
-                sortSelect.appendChild(option);
-            });
         }
 
         function renderLoading() {
@@ -501,6 +433,50 @@
             return attrs;
         }
 
+        function populateFilters() {
+            const models = new Set();
+            const backdrops = new Set();
+            const symbols = new Set();
+            
+            allNfts.forEach(nft => {
+                const attrs = extractAttributes(nft);
+                if (attrs.Model) models.add(attrs.Model);
+                if (attrs.Backdrop) backdrops.add(attrs.Backdrop);
+                if (attrs.Symbol) symbols.add(attrs.Symbol);
+            });
+            
+            const modelSelect = document.getElementById('filter-model');
+            const backdropSelect = document.getElementById('filter-backdrop');
+            const symbolSelect = document.getElementById('filter-symbol');
+            
+            // Очищаем и добавляем опцию "Все"
+            modelSelect.innerHTML = '<option value="all">Все модели</option>';
+            backdropSelect.innerHTML = '<option value="all">Все фоны</option>';
+            symbolSelect.innerHTML = '<option value="all">Все символы</option>';
+            
+            // Сортируем значения для удобства
+            [...models].sort().forEach(model => {
+                const option = document.createElement('option');
+                option.value = model;
+                option.textContent = model;
+                modelSelect.appendChild(option);
+            });
+            
+            [...backdrops].sort().forEach(backdrop => {
+                const option = document.createElement('option');
+                option.value = backdrop;
+                option.textContent = backdrop;
+                backdropSelect.appendChild(option);
+            });
+            
+            [...symbols].sort().forEach(symbol => {
+                const option = document.createElement('option');
+                option.value = symbol;
+                option.textContent = symbol;
+                symbolSelect.appendChild(option);
+            });
+        }
+
         function sortNfts(nfts, sortBy, sortDir) {
             const dir = sortDir === 'desc' ? -1 : 1;
             return [...nfts].sort((a, b) => {
@@ -513,7 +489,7 @@
                     const indexB = typeof b.index === 'number' ? b.index : parseFloat(b.index) || 0;
                     return dir * (indexA - indexB);
                 } else {
-                    // Sort by attribute
+                    // Sort by attribute (Model, Backdrop, Symbol)
                     const attrsA = extractAttributes(a);
                     const attrsB = extractAttributes(b);
                     const valA = attrsA[sortBy] || '';
@@ -524,23 +500,26 @@
         }
 
         function filterNfts() {
+            const modelFilter = document.getElementById('filter-model').value;
+            const backdropFilter = document.getElementById('filter-backdrop').value;
+            const symbolFilter = document.getElementById('filter-symbol').value;
+            
             return allNfts.filter(nft => {
                 const attrs = extractAttributes(nft);
                 
-                // Проверяем все динамические фильтры
-                let passesAllFilters = true;
+                if (modelFilter !== 'all' && attrs.Model !== modelFilter) {
+                    return false;
+                }
                 
-                attributeTypes.forEach((_, traitType) => {
-                    const filterSelect = document.getElementById(`filter-${traitType}`);
-                    if (filterSelect) {
-                        const filterValue = filterSelect.value;
-                        if (filterValue !== 'all' && attrs[traitType] !== filterValue) {
-                            passesAllFilters = false;
-                        }
-                    }
-                });
+                if (backdropFilter !== 'all' && attrs.Backdrop !== backdropFilter) {
+                    return false;
+                }
                 
-                return passesAllFilters;
+                if (symbolFilter !== 'all' && attrs.Symbol !== symbolFilter) {
+                    return false;
+                }
+                
+                return true;
             });
         }
 
@@ -625,14 +604,9 @@
         }
 
         function resetFilters() {
-            // Сбрасываем все динамические фильтры
-            attributeTypes.forEach((_, traitType) => {
-                const select = document.getElementById(`filter-${traitType}`);
-                if (select) {
-                    select.value = 'all';
-                }
-            });
-            
+            document.getElementById('filter-model').value = 'all';
+            document.getElementById('filter-backdrop').value = 'all';
+            document.getElementById('filter-symbol').value = 'all';
             document.getElementById('sort-by').value = 'name';
             document.getElementById('sort-dir').value = 'asc';
             renderNfts();
