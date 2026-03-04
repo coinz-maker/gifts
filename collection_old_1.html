@@ -1,9 +1,11 @@
+
+				
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NFT Коллекция</title>
+    <title>Lunar Snakes NFT Collection</title>
     <style>
         /* Стили полностью совпадают с предыдущей версией */
         * {
@@ -33,31 +35,6 @@
             margin-bottom: 20px;
             font-size: 2.5em;
             text-align: center;
-        }
-
-        .back-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            padding: 10px 20px;
-            background: #667eea;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .back-link:hover {
-            background: #5a67d8;
-            transform: translateX(-5px);
-        }
-
-        .wallet-info {
-            background: #f0f2f5;
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-family: monospace;
-            word-break: break-all;
         }
 
         .filters {
@@ -280,11 +257,8 @@
 </head>
 <body>
     <div class="container">
-        <a href="index.html" class="back-link">← Назад к списку коллекций</a>
-        <h1 id="collection-title">Загрузка коллекции...</h1>
+        <h1>Lunar Snakes NFT Collection</h1>
         
-        <div class="wallet-info" id="wallet-info"></div>
-
         <div class="filters">
             <div class="filter-group">
                 <label for="sort-by">Сортировать по:</label>
@@ -333,7 +307,7 @@
         </div>
 
         <div class="nft-grid" id="nft-grid">
-            <div class="loading">Загрузка NFT коллекции...</div>
+            <div class="loading">Загрузка NFT с TonAPI...</div>
         </div>
         <div class="last-updated" id="last-updated"></div>
     </div>
@@ -346,74 +320,56 @@
     </div>
 
     <script>
-        // Получаем параметры из URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const walletAddress = urlParams.get('wallet');
-        const collectionAddress = urlParams.get('collection');
-
         // Состояние приложения
         let allNfts = [];
         let currentNfts = [];
         let isLoading = false;
         let error = null;
 
-        // Показываем информацию о кошельке
-        if (walletAddress) {
-            document.getElementById('wallet-info').textContent = `Кошелек: ${walletAddress}`;
-        }
+        // Функция загрузки данных из API
 
-        // Функция загрузки данных из API для конкретной коллекции
-        async function fetchCollectionNfts() {
-            if (!walletAddress || !collectionAddress) {
-                document.getElementById('nft-grid').innerHTML = '<div class="error">❌ Не указан кошелек или коллекция</div>';
-                return;
-            }
+		async function fetchNfts() {
+			try {
+				renderLoading();
 
-            try {
-                renderLoading();
+				const response = await fetch('/.netlify/functions/fetch-nfts');
 
-                const response = await fetch(`/.netlify/functions/get-collection-nfts?wallet=${encodeURIComponent(walletAddress)}&collection=${encodeURIComponent(collectionAddress)}`);
+				if (!response.ok) {
+					throw new Error(`HTTP ошибка! статус: ${response.status}`);
+				}
 
-                if (!response.ok) {
-                    throw new Error(`HTTP ошибка! статус: ${response.status}`);
-                }
+				const data = await response.json();
 
-                const data = await response.json();
+				allNfts = data.nft_items || [];
+				currentNfts = [...allNfts];
 
-                allNfts = data.nft_items || [];
-                currentNfts = [...allNfts];
+				populateFilters();
+				renderNfts();
 
-                // Обновляем заголовок с названием коллекции
-                if (allNfts.length > 0 && allNfts[0].collection) {
-                    document.getElementById('collection-title').textContent = allNfts[0].collection.name;
-                } else if (collectionAddress === 'none') {
-                    document.getElementById('collection-title').textContent = 'NFT без коллекции';
-                }
+				const now = new Date();
+				document.getElementById('last-updated').textContent = `Обновлено: ${now.toLocaleString()}`;
 
-                populateFilters();
-                renderNfts();
+			} catch (err) {
+				console.error('Ошибка:', err);
+				error = err.message;
+				renderError();
+			}
+		}
 
-                const now = new Date();
-                document.getElementById('last-updated').textContent = `Обновлено: ${now.toLocaleString()}`;
 
-            } catch (err) {
-                console.error('Ошибка:', err);
-                error = err.message;
-                renderError();
-            }
-        }
+
 
         function renderLoading() {
             document.getElementById('nft-grid').innerHTML = '<div class="loading">⏳ Загрузка данных с TonAPI...</div>';
         }
 
         function renderError() {
-            document.getElementById('nft-grid').innerHTML = `<div class="error">❌ Ошибка загрузки: ${error}. <br> <button onclick="fetchCollectionNfts()">Повторить</button></div>`;
+            document.getElementById('nft-grid').innerHTML = `<div class="error">❌ Ошибка загрузки: ${error}. <br> <button onclick="fetchNfts()">Повторить</button></div>`;
         }
 
         function getImageUrl(nft) {
             // Приоритет: preview 100x100 > image > заглушка
-            const preview100 = nft.previews?.find(p => p.resolution === "100x100");
+            const preview100 = nft.previews?.find(p => p.resolution === "500x500");
             if (preview100?.url) return preview100.url;
             
             if (nft.metadata?.image) return nft.metadata.image;
@@ -574,7 +530,7 @@
                 <img class="modal-image" src="${imageUrl}" alt="${nft.metadata?.name || 'NFT'}" onerror="this.src='https://via.placeholder.com/500?text=Error'">
                 <h2>${nft.metadata?.name || 'Без имени'}</h2>
                 <p><strong>Адрес:</strong> ${shortAddress}</p>
-                <p><strong>Коллекция:</strong> ${nft.collection?.name || 'Без коллекции'}</p>
+                <p><strong>Коллекция:</strong> ${nft.collection?.name || 'Lunar Snakes'}</p>
                 <div class="modal-attributes">
                     ${Object.entries(attrs).map(([key, value]) => `
                         <div class="modal-attribute">
@@ -613,7 +569,7 @@
         }
 
         // Автоматическая загрузка при открытии страницы
-        window.addEventListener('load', fetchCollectionNfts);
+        window.addEventListener('load', fetchNfts);
     </script>
 </body>
 </html>
