@@ -7,7 +7,7 @@ exports.handler = async function() {
         },
         body: JSON.stringify({
             keyExists: !!process.env.TONAPI_KEY,
-            keyValue: process.env.TONAPI_KEY ? process.env.TONAPI_KEY.substring(0, 3) + '...' : null,
+            keyValue: process.env.TONAPI_KEY ? process.env.TONAPI_KEY.substring(0, 13) + '...' : null,
             allEnvKeys: Object.keys(process.env).filter(key => !key.includes('PASSWORD')) // безопасно показываем только имена
         })
     };
