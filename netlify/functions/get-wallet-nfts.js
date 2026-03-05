@@ -15,7 +15,16 @@ exports.handler = async function(event, context) {
 
     try {
         const address = event.queryStringParameters?.address;
+        // Получаем ключ из query параметра ИЛИ из переменных окружения
+        const apiKeyFromQuery = event.queryStringParameters?.api_key;
+        const TONAPI_KEY = process.env.TONAPI_KEY || apiKeyFromQuery;
         
+        console.log('Debug:', { 
+            address: address ? address.substring(0, 10) + '...' : null,
+            hasApiKey: !!TONAPI_KEY,
+            keySource: TONAPI_KEY ? (TONAPI_KEY === apiKeyFromQuery ? 'query' : 'env') : 'none'
+        });
+
         if (!address) {
             return {
                 statusCode: 400,
@@ -24,11 +33,7 @@ exports.handler = async function(event, context) {
             };
         }
 
-        // Получаем API-ключ из переменных окружения Netlify
-        const TONAPI_KEY = process.env.TONAPI_KEY;
-        
         if (!TONAPI_KEY) {
-            console.error('TONAPI_KEY not set in environment variables');
             return {
                 statusCode: 500,
                 headers,
@@ -36,42 +41,50 @@ exports.handler = async function(event, context) {
             };
         }
 
-        // Формируем URL с API-ключом в query параметре
-        const apiUrl = `https://tonapi.io/v2/accounts/${encodeURIComponent(address)}/nfts?limit=1000&offset=0&api_key=${TONAPI_KEY}`;
-        
-        const response = await fetch(apiUrl, {
-            headers: {
-                'Accept': 'application/json'
+        // Пробуем разные способы передачи ключа
+        let data = null;
+        let lastError = null;
+
+        // Способ 1: ключ в query параметре
+        try {
+            const urlWithQueryKey = `https://tonapi.io/v2/accounts/${encodeURIComponent(address)}/nfts?limit=1000&offset=0&api_key=${TONAPI_KEY}`;
+            const response = await fetch(urlWithQueryKey, {
+                headers: { 'Accept': 'application/json' }
+            });
+            
+            if (response.ok) {
+                data = await response.json();
+            } else {
+                lastError = `Query param method failed: ${response.status}`;
             }
-        });
-        
-        if (!response.ok) {
-            // Пробуем другой способ: через заголовок Authorization
-            if (response.status === 401 || response.status === 403) {
-                console.log('Retrying with Authorization header...');
-                const altResponse = await fetch(`https://tonapi.io/v2/accounts/${encodeURIComponent(address)}/nfts?limit=1000&offset=0`, {
+        } catch (e) {
+            lastError = `Query param method error: ${e.message}`;
+        }
+
+        // Способ 2: если первый не сработал, пробуем через Authorization header
+        if (!data) {
+            try {
+                const url = `https://tonapi.io/v2/accounts/${encodeURIComponent(address)}/nfts?limit=1000&offset=0`;
+                const response = await fetch(url, {
                     headers: {
                         'Authorization': `Bearer ${TONAPI_KEY}`,
                         'Accept': 'application/json'
                     }
                 });
                 
-                if (!altResponse.ok) {
-                    throw new Error(`TonAPI ответил статусом ${altResponse.status}`);
+                if (response.ok) {
+                    data = await response.json();
+                } else {
+                    lastError = `Auth header method failed: ${response.status}`;
                 }
-                
-                const altData = await altResponse.json();
-                return {
-                    statusCode: 200,
-                    headers,
-                    body: JSON.stringify(altData)
-                };
+            } catch (e) {
+                lastError = `Auth header method error: ${e.message}`;
             }
-            
-            throw new Error(`TonAPI ответил статусом ${response.status}`);
         }
 
-        const data = await response.json();
+        if (!data) {
+            throw new Error(`All authentication methods failed. Last error: ${lastError}`);
+        }
         
         return {
             statusCode: 200,
@@ -87,7 +100,8 @@ exports.handler = async function(event, context) {
             headers,
             body: JSON.stringify({ 
                 error: 'Ошибка при загрузке NFT',
-                details: error.message 
+                details: error.message,
+                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
             })
         };
     }
